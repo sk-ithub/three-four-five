@@ -378,7 +378,18 @@ export default function Game345(){
       {/* DECK */}
       {dealAnim==="shuffle"&&(
         <div style={{position:"absolute",top:"38%",left:"50%",transform:"translate(-50%,-50%)",zIndex:20}}>
-          {[0,1,2,3].map(i=>(<div key={i} style={{position:i===0?"relative":"absolute",top:i*-2,left:i*1,width:{sm:42,md:56,lg:70}[sz],height:{sm:60,md:80,lg:102}[sz],borderRadius:5,background:P.olive,border:`1px solid ${P.dark}15`,boxShadow:"2px 2px 0px rgba(0,0,0,0.12)",display:"flex",alignItems:"center",justifyContent:"center",animation:i%2===0?`shuffleL 0.8s ${EG} ${i*0.1}s`:`shuffleR 0.8s ${EG} ${i*0.1}s`}}>{i===3&&<span style={{color:`${P.cream}25`,fontSize:16}}>✦</span>}</div>))}
+          {[0,1,2,3].map(i=>(
+            <CardC 
+              key={i} 
+              faceDown 
+              style={{
+                position: i===0 ? "relative" : "absolute",
+                top: i * -2,
+                left: i * 1,
+                animation: i%2===0 ? `shuffleL 0.8s ${EG} ${i*0.1}s` : `shuffleR 0.8s ${EG} ${i*0.1}s`
+              }} 
+            />
+          ))}
         </div>
       )}
 
@@ -395,12 +406,12 @@ export default function Game345(){
 
       {/* OPPONENT TOP */}
       <div style={{position:"absolute",top:{sm:36,md:48,lg:52}[sz],left:"50%",transform:"translateX(-50%)",display:"flex"}}>
-        {ps[1].hand.map((_,i)=><CardC key={`t${i}`} faceDown small style={{marginLeft:i>0?{sm:-14,md:-18,lg:-20}[sz]:0,transform:`rotate(${(i-(ps[1].hand.length-1)/2)*3}deg)`,animation:isDeal&&allDealt?`dealUp 0.5s ${EG} ${i*0.06}s both`:rearranging?`rearrange 0.5s ${EG} ${i*0.04}s both`:undefined,transition:handTransition}}/>)}
+        {ps[1].hand.map((_,i)=><CardC key={`t${i}`} faceDown small style={{marginLeft:i>0?{sm:-14,md:-18,lg:-20}[sz]:0,transform:`rotate(${(i-(ps[1].hand.length-1)/2)*3}deg)`,opacity:isDeal&&!allDealt?0:1,animation:isDeal&&allDealt?`dealUp 0.5s ${EG} ${i*0.06}s both`:rearranging?`rearrange 0.5s ${EG} ${i*0.04}s both`:undefined,transition:handTransition}}/>)}
       </div>
 
       {/* OPPONENT RIGHT — at edge */}
       <div style={{position:"absolute",right:{sm:4,md:8,lg:12}[sz],top:"44%",transform:"translateY(-50%)",display:"flex",flexDirection:"column"}}>
-        {ps[2].hand.map((_,i)=><CardC key={`r${i}`} faceDown small style={{marginTop:i>0?{sm:-24,md:-34,lg:-40}[sz]:0,transform:`rotate(${90+(i-(ps[2].hand.length-1)/2)*3}deg)`,animation:isDeal&&allDealt?`dealRight 0.5s ${EG} ${i*0.06}s both`:rearranging?`rearrange 0.5s ${EG} ${i*0.04}s both`:undefined,transition:handTransition}}/>)}
+        {ps[2].hand.map((_,i)=><CardC key={`r${i}`} faceDown small style={{marginTop:i>0?{sm:-24,md:-34,lg:-40}[sz]:0,transform:`rotate(${90+(i-(ps[2].hand.length-1)/2)*3}deg)`,opacity:isDeal&&!allDealt?0:1,animation:isDeal&&allDealt?`dealRight 0.5s ${EG} ${i*0.06}s both`:rearranging?`rearrange 0.5s ${EG} ${i*0.04}s both`:undefined,transition:handTransition}}/>)}
       </div>
 
       {/* TRICK AREA — fixed positions, no snap */}
@@ -433,7 +444,7 @@ export default function Game345(){
           const yOff=Math.abs(i-(n-1)/2)*(n>9?0.3:0.7);
           const isValid=vids.has(card.id);
           const showDis=fadeDisabled?!isValid:false;
-          return(<div key={card.id} style={{marginLeft:i>0?ov:0,transform:`rotate(${angle}deg) translateY(${yOff}px)`,transition:handTransition,zIndex:sel?.id===card.id?30:i,animation:isDeal&&allDealt?`dealDown 0.5s ${EG} ${i*0.06}s both`:rearranging?`rearrange 0.5s ${EG} ${i*0.04}s both`:undefined}}>
+          return(<div key={card.id} style={{marginLeft:i>0?ov:0,transform:`rotate(${angle}deg) translateY(${yOff}px)`,transition:handTransition,zIndex:sel?.id===card.id?30:i,opacity:isDeal&&!allDealt?0:1,animation:isDeal&&allDealt?`dealDown 0.5s ${EG} ${i*0.06}s both`:rearranging?`rearrange 0.5s ${EG} ${i*0.04}s both`:undefined}}>
             <CardC card={card} onClick={clickCard} disabled={curP!==0||(fadeDisabled&&!isValid)} selected={sel?.id===card.id} style={!fadeDisabled&&!isValid&&curP===0?{cursor:"pointer",opacity:1}:undefined}/>
           </div>);
         })}
