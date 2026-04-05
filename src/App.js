@@ -61,7 +61,7 @@ function CardC({card,faceDown,onClick,disabled,selected,small,style}){
   const bw=small?{sm:28,md:40,lg:48}[sz]:{sm:50,md:66,lg:82}[sz];
   const bh=small?{sm:40,md:58,lg:68}[sz]:{sm:74,md:96,lg:120}[sz];
 
-  const PU=typeof process!=="undefined"&&process.env?.PUBLIC_URL?process.env.PUBLIC_URL:"";
+  const PU = process.env.PUBLIC_URL || "";
   if(faceDown){
     if(USE_SVG_CARDS)return <div style={{width:bw,height:bh,borderRadius:small?3:6,flexShrink:0,boxShadow:"2px 2px 0px rgba(0,0,0,0.1)",overflow:"hidden",...(style||{})}}><img src={`${PU}/cards/back.svg`} alt="card" style={{width:"100%",height:"100%",objectFit:"cover"}}/></div>;
     return(<div style={{width:bw,height:bh,borderRadius:small?3:6,flexShrink:0,background:P.olive,border:`1px solid ${P.dark}12`,boxShadow:"2px 2px 0px rgba(0,0,0,0.1)",display:"flex",alignItems:"center",justifyContent:"center",...(style||{})}}>{sz==="lg"&&!small&&<div style={{width:bw-10,height:bh-10,borderRadius:3,border:`1px solid ${P.cream}20`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:`${P.cream}30`}}>✦</div>}</div>);
