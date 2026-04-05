@@ -23,6 +23,12 @@ const cardFile=(card)=>`/cards/${RANK_FILE[card.rank]}_of_${card.suit}.svg`;
 const BACK_FILE="/cards/back.svg";
 
 const ACSS=`
+body {
+  overscroll-behavior-y: contain;
+  position: fixed;
+  overflow: hidden;
+  width: 100%;
+}
 @keyframes dealDown{from{transform:translate(0,-50vh) scale(0.7);opacity:0}60%{opacity:1}to{transform:none;opacity:1}}
 @keyframes dealUp{from{transform:translate(0,40vh) scale(0.7);opacity:0}60%{opacity:1}to{transform:none;opacity:1}}
 @keyframes dealRight{from{transform:translate(-50vw,0) scale(0.7);opacity:0}60%{opacity:1}to{transform:none;opacity:1}}
