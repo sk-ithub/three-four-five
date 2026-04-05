@@ -5,7 +5,7 @@ const SUITS=["hearts","diamonds","clubs","spades"],RANKS=["6","7","8","9","10","
 const RV={6:6,7:7,8:8,9:9,10:10,J:11,Q:12,K:13,A:14};
 const SYM={hearts:"♥",diamonds:"♦",clubs:"♣",spades:"♠"};
 const SCOL={hearts:"#D66753",diamonds:"#D66753",clubs:"#2C2C2C",spades:"#2C2C2C"};
-const TARGETS=[5,4,3],RLABEL=["Trump Decider","Cutter","Dealer"];
+const TARGETS=[5,4,3],RLABEL=["Trump Caller","Cutter","Dealer"];
 const P={dark:"#2C2C2C",terra:"#D66753",cream:"#F1EAD8",blue:"#4E7BAD",olive:"#7D8450",gold:"#E3B605"};
 const NAMES=["Amara","Rohan","Zara","Felix","Luna","Kai","Mira","Dex","Noor","Jude","Sia","Rex","Ivy","Omar","Tessa","Nico","Priya","Arun","Lila","Hugo","Meera","Theo","Suki","Cass","Ravi","Anya","Idris","Bea","Yuki","Ezra"];
 const pick2=()=>{const s=[...NAMES].sort(()=>Math.random()-0.5);return[s[0],s[1]]};
