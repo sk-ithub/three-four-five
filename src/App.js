@@ -63,7 +63,7 @@ function CardC({card,faceDown,onClick,disabled,selected,small,style}){
 
   const PU = process.env.PUBLIC_URL || "";
   if(faceDown){
-    if(USE_SVG_CARDS)return <div style={{width:bw,height:bh,borderRadius:small?3:6,flexShrink:0,boxShadow:"2px 2px 0px rgba(0,0,0,0.1)",overflow:"hidden",...(style||{})}}><img src={`${PU}/cards/back.svg`} alt="card" style={{width:"100%",height:"100%",objectFit:"cover"}}/></div>;
+    if(USE_SVG_CARDS)return <div style={{width:bw,height:bh,borderRadius:small?3:6,flexShrink:0,boxShadow:"2px 2px 0px rgba(0,0,0,0.1)",overflow:"hidden",...(style||{})}}><img src="./cards/back.svg" alt="card" style={{width:"100%",height:"100%",objectFit:"cover"}}/></div>;
     return(<div style={{width:bw,height:bh,borderRadius:small?3:6,flexShrink:0,background:P.olive,border:`1px solid ${P.dark}12`,boxShadow:"2px 2px 0px rgba(0,0,0,0.1)",display:"flex",alignItems:"center",justifyContent:"center",...(style||{})}}>{sz==="lg"&&!small&&<div style={{width:bw-10,height:bh-10,borderRadius:3,border:`1px solid ${P.cream}20`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:`${P.cream}30`}}>✦</div>}</div>);
   }
 
@@ -330,13 +330,14 @@ export default function Game345(){
 
       {(showMenu||showHelp)&&(<div style={{position:"fixed",inset:0,background:"rgba(44,44,44,0.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100}} onClick={()=>{setShowMenu(false);setShowHelp(false)}}>
         <div onClick={e=>e.stopPropagation()} style={{background:P.cream,borderRadius:6,padding:sz==="sm"?"14px":"20px",maxWidth:280,width:"85%",color:P.dark,boxShadow:"4px 4px 0px rgba(0,0,0,0.08)",textAlign:"center"}}>
-          {showHelp?(<><h3 style={{fontFamily:FD,fontSize:{sm:16,md:18,lg:20}[sz],margin:"0 0 10px"}}>How to Play</h3><div style={{fontSize:{sm:10,md:11,lg:12}[sz],lineHeight:1.8,fontWeight:500,textAlign:"left"}}>
-            <p style={{margin:"0 0 5px"}}><span style={tagS(P.terra)}>Roles</span> TD: 5. Cutter: 4. Dealer: 3.</p>
-            <p style={{margin:"0 0 5px"}}><span style={tagS(P.blue)}>Trump</span> Beats everything.</p>
-            <p style={{margin:"0 0 5px"}}><span style={tagS(P.olive)}>Suit</span> Must follow led suit.</p>
-            <p style={{margin:"0 0 5px"}}><span style={tagS(P.dark)}>Win</span> Highest trump or led suit.</p>
-            <p style={{margin:"0 0 8px"}}><span style={tagS(P.terra)}>Points</span> Miss? Pay difference.</p>
-          </div><button onClick={()=>setShowHelp(false)} style={btnS(P.terra)}>Got It</button></>):(<><h3 style={{fontFamily:FD,fontSize:{sm:16,md:18,lg:20}[sz],margin:"0 0 12px"}}>Menu</h3><div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"center"}}>
+          {showHelp?(<><h3 style={{fontFamily:FD,fontSize:{sm:20,md:24,lg:28}[sz],margin:"0 0 20px"}}>How To Play</h3><div style={{fontSize:{sm:10,md:11,lg:13}[sz],lineHeight:1.4,fontWeight:500,textAlign:"left",display:"flex",flexDirection:"column",gap:15}}>
+            <div style={{display:"flex",gap:12,alignItems:"flex-start"}}><span style={{...tagS(P.cream),color:P.dark,minWidth:70,textAlign:"center",boxShadow:"2px 2px 0px rgba(0,0,0,0.1)"}}>SETUP</span><div style={{color:P.dark}}>Each player starts with a target number of tricks.<br/><strong>Trump Caller · 5</strong> &nbsp;|&nbsp; <strong>Cutter · 4</strong> &nbsp;|&nbsp; <strong>Dealer · 3</strong></div></div>
+            <div style={{display:"flex",gap:12,alignItems:"flex-start"}}><span style={{...tagS(P.terra),minWidth:70,textAlign:"center"}}>TRICKS</span><div style={{color:P.dark}}>Each player plays one card. The highest card wins all three—that is one "trick."</div></div>
+            <div style={{display:"flex",gap:12,alignItems:"flex-start"}}><span style={{...tagS(P.blue),minWidth:70,textAlign:"center"}}>TRUMP</span><div style={{color:P.dark}}>One suit is chosen as Trump. These cards beat any other suit, regardless of rank.</div></div>
+            <div style={{display:"flex",gap:12,alignItems:"flex-start"}}><span style={{...tagS(P.dark),minWidth:70,textAlign:"center"}}>RULES</span><div style={{color:P.dark}}>You must follow the suit that was led. If you can't, you may play a Trump to win or discard another suit.</div></div>
+            <div style={{display:"flex",gap:12,alignItems:"flex-start"}}><span style={{...tagS(P.olive),minWidth:70,textAlign:"center"}}>WINNING</span><div style={{color:P.dark}}>High card of the led suit wins, unless a Trump is played. The winner leads the next trick.</div></div>
+            <div style={{display:"flex",gap:12,alignItems:"flex-start"}}><span style={{...tagS(P.gold),minWidth:70,textAlign:"center"}}>SCORING</span><div style={{color:P.dark}}><div>At the end of a round, if you missed your target, you must pay points to those who exceeded theirs.*</div><div style={{fontSize:10,color:`${P.dark}60`,marginTop:6,lineHeight:1.2}}>*Each player starts out with 19 points, to stay true to the original offline game.</div></div></div>
+          </div><div style={{display:"flex",justifyContent:"center",marginTop:25}}><button onClick={()=>setShowHelp(false)} style={{...btnS(P.terra),padding:"12px 64px",fontSize:16,borderRadius:6}}>GOT IT</button></div></>):(<><h3 style={{fontFamily:FD,fontSize:{sm:16,md:18,lg:20}[sz],margin:"0 0 12px"}}>Menu</h3><div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"center"}}>
             <button onClick={()=>setShowMenu(false)} style={{...btnS(P.olive),width:"100%",maxWidth:200}}>▶ Resume</button>
             <button onClick={()=>{setShowMenu(false);setShowHelp(true)}} style={{...btnS(P.blue),width:"100%",maxWidth:200}}>? How to Play</button>
             <button onClick={()=>{setShowMenu(false);newGame()}} style={{...btnS(P.dark),width:"100%",maxWidth:200}}>↻ New Game</button>
