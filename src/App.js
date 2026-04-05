@@ -461,18 +461,18 @@ export default function Game345(){
       {/* TRUMP SELECT */}
       {phase==="trumpSelect"&&(
         <div style={{position:"absolute",inset:0,background:"rgba(44,44,44,0.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:50}}>
-          <div style={{background:P.cream,borderRadius:6,padding:{sm:"12px",md:"16px",lg:"20px"}[sz],textAlign:"center",color:P.dark,boxShadow:"4px 4px 0px rgba(0,0,0,0.08)",maxWidth:{sm:300,md:360,lg:400}[sz],width:"94%"}}>
+          <div style={{background:P.cream,borderRadius:6,padding:{sm:"12px",md:"16px",lg:"20px"}[sz],textAlign:"center",color:P.dark,boxShadow:"4px 4px 0px rgba(0,0,0,0.08)",maxWidth:{sm:360,md:500,lg:650}[sz],width:"94%"}}>
             <h3 style={{fontFamily:FD,fontSize:{sm:16,md:19,lg:22}[sz],margin:"0 0 4px"}}>Choose Trump</h3>
             <p style={{fontSize:{sm:9,md:10,lg:11}[sz],color:`${P.dark}66`,margin:"0 0 8px",fontWeight:500}}>Your first 5 cards — pick a trump suit</p>
             <div style={{display:"flex",justifyContent:"center",gap:{sm:2,md:3,lg:4}[sz],marginBottom:12}}>
-              {ps[0].hand.map(card=><CardC key={card.id} card={card} small/>)}
+              {ps[0].hand.map(card=><CardC key={card.id} card={card} />)}
             </div>
             <div style={{display:"flex",gap:{sm:5,md:6,lg:8}[sz],justifyContent:"center"}}>
               {SUITS.map(suit=>{const cnt=ps[0].hand.filter(c=>c.suit===suit).length;return(
-                <button key={suit} onClick={()=>chooseTrump(suit)} style={{width:{sm:54,md:64,lg:76}[sz],height:{sm:66,md:78,lg:92}[sz],borderRadius:5,background:P.cream,border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:1,boxShadow:"2px 2px 0px rgba(0,0,0,0.06)",transition:`all 0.2s ${EG}`}}
+                <button key={suit} onClick={()=>chooseTrump(suit)} style={{width:{sm:70,md:90,lg:110}[sz],height:{sm:85,md:110,lg:130}[sz],borderRadius:5,background:P.cream,border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:1,boxShadow:"2px 2px 0px rgba(0,0,0,0.06)",transition:`all 0.2s ${EG}`}}
                   onMouseEnter={e=>{e.currentTarget.style.background=`${P.olive}15`;e.currentTarget.style.transform="translateY(-3px)"}}
                   onMouseLeave={e=>{e.currentTarget.style.background=P.cream;e.currentTarget.style.transform="none"}}>
-                  <span style={{fontSize:{sm:20,md:26,lg:32}[sz],color:SCOL[suit]}}>{SYM[suit]}</span>
+                  <span style={{fontSize:{sm:30,md:42,lg:54}[sz],color:SCOL[suit]}}>{SYM[suit]}</span>
                   <span style={{fontSize:{sm:8,md:10,lg:12}[sz],color:P.dark,textTransform:"capitalize",fontFamily:FD}}>{suit}</span>
                   <span style={{fontSize:{sm:7,md:8,lg:9}[sz],color:`${P.dark}55`,fontFamily:FB,fontWeight:600}}>{cnt} card{cnt!==1?"s":""}</span>
                 </button>)})}
