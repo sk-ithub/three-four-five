@@ -5,14 +5,14 @@ const SUITS=["hearts","diamonds","clubs","spades"],RANKS=["6","7","8","9","10","
 const RV={6:6,7:7,8:8,9:9,10:10,J:11,Q:12,K:13,A:14};
 const SYM={hearts:"♥",diamonds:"♦",clubs:"♣",spades:"♠"};
 const SCOL={hearts:"#D66753",diamonds:"#D66753",clubs:"#2C2C2C",spades:"#2C2C2C"};
-const TARGETS=[5,4,3],RLABEL=["Trump Decider","Cutter","Dealer"];
+const TARGETS=[5,4,3],RLABEL=["Trump Caller","Cutter","Dealer"];
 const P={dark:"#2C2C2C",terra:"#D66753",cream:"#F1EAD8",blue:"#4E7BAD",olive:"#7D8450",gold:"#E3B605"};
 const NAMES=["Amara","Rohan","Zara","Felix","Luna","Kai","Mira","Dex","Noor","Jude","Sia","Rex","Ivy","Omar","Tessa","Nico","Priya","Arun","Lila","Hugo","Meera","Theo","Suki","Cass","Ravi","Anya","Idris","Bea","Yuki","Ezra"];
 const pick2=()=>{const s=[...NAMES].sort(()=>Math.random()-0.5);return[s[0],s[1]]};
 if(typeof document!=="undefined"&&!document.head.querySelector('link[href*="Abril+Fatface"]')){const l=document.createElement("link");l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Manrope:wght@400;500;600;700&display=swap";document.head.appendChild(l)}
 const FD="'Abril Fatface',Georgia,serif",FB="'Manrope','Segoe UI',sans-serif";
 const SPEEDS={slow:{label:"Slow",m:2.8},normal:{label:"Normal",m:1.6},fast:{label:"Fast",m:1}};
-const EG="cubic-bezier(0.16,1,0.3,1)";
+const EG="cubic-bezier(0.25,1.0,0.5,1.0)";
 
 // Set to true once you put SVGs in public/cards/
 const USE_SVG_CARDS = true;
@@ -34,7 +34,6 @@ const ACSS=`
 @keyframes rearrange{0%{transform:translateX(var(--rx,0)) scale(0.9);opacity:0.6}100%{transform:none;opacity:1}}
 @keyframes plusPop{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-22px) scale(1.4);opacity:0}}
 @keyframes popupIn{0%{transform:translate(-50%,-50%) scale(0.8);opacity:0}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
-.handScroll::-webkit-scrollbar{display:none}
 `;
 
 /* ═══ GAME LOGIC — 100% UNCHANGED ═══ */
@@ -50,12 +49,7 @@ const targetOf=(i,d)=>TARGETS[roleOf(i,d)];
 const rname=(i,d)=>RLABEL[roleOf(i,d)];
 const pn=(i,pl)=>i===0?"You":pl[i].name;
 const aiTrump=hand=>{const sc={};SUITS.forEach(s=>sc[s]=0);hand.forEach(c=>{sc[c.suit]+=2;if(cv(c)>=13)sc[c.suit]+=3;else if(cv(c)>=11)sc[c.suit]+=1});return SUITS.reduce((a,b)=>sc[a]>=sc[b]?a:b)};
-// How many cards in this suit, ranked higher than myRank, are still unaccounted for (not played, not in my own hand)?
-const higherOut=(suit,rank,playedIds,hand)=>{let n=0;for(const r of RANKS){if(RV[r]>RV[rank]){const id=`${r}_${suit}`;if(!playedIds.has(id)&&!hand.some(c=>c.id===id))n++}}return n};
-// How many opponents are known to be void in this suit (revealed by not following suit earlier)?
-const voidRisk=(suit,myIndex,voidMap)=>{let n=0;for(let i=0;i<3;i++)if(i!==myIndex&&voidMap[i]&&voidMap[i].has(suit))n++;return n};
-const computeVoidMap=hist=>{const vm={0:new Set(),1:new Set(),2:new Set()};hist.forEach(h=>{if(h.card.suit!==h.ledSuit)vm[h.playerIndex].add(h.ledSuit)});return vm};
-const aiCard=(hand,trick,trump,won,target,tNum,playedIds,voidMap,myIndex)=>{const valid=getValid(hand,trick);if(valid.length===1)return valid[0];const need=won<target,desp=target-won>=13-tNum;if(!trick.length){if(desp){const tc=valid.filter(c=>c.suit===trump).sort((a,b)=>cv(b)-cv(a));if(tc.length&&cv(tc[0])>=12)return tc[0]}if(need){const nt=valid.filter(c=>c.suit!==trump);if(nt.length){const scored=nt.map(c=>({c,higher:higherOut(c.suit,c.rank,playedIds,hand),risk:voidRisk(c.suit,myIndex,voidMap)}));scored.sort((a,b)=>(a.higher-b.higher)||(a.risk-b.risk)||(cv(b.c)-cv(a.c)));return scored[0].c}return valid.reduce((a,b)=>cv(a)>cv(b)?a:b)}const nt=valid.filter(c=>c.suit!==trump);const pool=nt.length?nt:valid;const sc={};hand.forEach(c=>{sc[c.suit]=(sc[c.suit]||0)+1});const ranked=[...pool].sort((a,b)=>(sc[a.suit]-sc[b.suit])||(cv(a)-cv(b)));return ranked[0]}const led=trick[0].card.suit,following=valid[0].suit===led,hasTr=trick.some(x=>x.card.suit===trump&&led!==trump);if(following){if(won>=target||hasTr)return valid.reduce((a,b)=>cv(a)<cv(b)?a:b);if(need){const best=Math.max(...trick.filter(x=>x.card.suit===led).map(x=>cv(x.card)));const w=valid.filter(c=>cv(c)>best);if(w.length)return trick.length===2?w.reduce((a,b)=>cv(a)<cv(b)?a:b):w.reduce((a,b)=>cv(a)>cv(b)?a:b)}return valid.reduce((a,b)=>cv(a)<cv(b)?a:b)}const tc=valid.filter(c=>c.suit===trump),nt=valid.filter(c=>c.suit!==trump);if(need&&tc.length){const pt=trick.filter(x=>x.card.suit===trump);if(pt.length){const ht=Math.max(...pt.map(x=>cv(x.card)));const b=tc.filter(c=>cv(c)>ht);if(b.length)return b.reduce((a,b2)=>cv(a)<cv(b2)?a:b2);if(nt.length)return nt.reduce((a,b)=>cv(a)<cv(b)?a:b);return tc.reduce((a,b)=>cv(a)<cv(b)?a:b)}return tc.reduce((a,b)=>cv(a)<cv(b)?a:b)}return(nt.length?nt:valid).reduce((a,b)=>cv(a)<cv(b)?a:b)};
+const aiCard=(hand,trick,trump,won,target,tNum)=>{const valid=getValid(hand,trick);if(valid.length===1)return valid[0];const need=won<target,desp=target-won>=13-tNum;if(!trick.length){if(desp){const tc=valid.filter(c=>c.suit===trump).sort((a,b)=>cv(b)-cv(a));if(tc.length&&cv(tc[0])>=12)return tc[0]}if(need){const nt=valid.filter(c=>c.suit!==trump);const aces=nt.filter(c=>cv(c)===14);if(aces.length)return aces[0];const kings=nt.filter(c=>cv(c)===13);if(kings.length)return kings[0];if(nt.length)return nt.reduce((a,b)=>cv(a)>cv(b)?a:b);return valid.reduce((a,b)=>cv(a)>cv(b)?a:b)}const nt=valid.filter(c=>c.suit!==trump);return(nt.length?nt:valid).reduce((a,b)=>cv(a)<cv(b)?a:b)}const led=trick[0].card.suit,following=valid[0].suit===led,hasTr=trick.some(x=>x.card.suit===trump&&led!==trump);if(following){if(won>=target||hasTr)return valid.reduce((a,b)=>cv(a)<cv(b)?a:b);if(need){const best=Math.max(...trick.filter(x=>x.card.suit===led).map(x=>cv(x.card)));const w=valid.filter(c=>cv(c)>best);if(w.length)return trick.length===2?w.reduce((a,b)=>cv(a)<cv(b)?a:b):w.reduce((a,b)=>cv(a)>cv(b)?a:b)}return valid.reduce((a,b)=>cv(a)<cv(b)?a:b)}const tc=valid.filter(c=>c.suit===trump),nt=valid.filter(c=>c.suit!==trump);if(need&&tc.length){const pt=trick.filter(x=>x.card.suit===trump);if(pt.length){const ht=Math.max(...pt.map(x=>cv(x.card)));const b=tc.filter(c=>cv(c)>ht);if(b.length)return b.reduce((a,b2)=>cv(a)<cv(b2)?a:b2);if(nt.length)return nt.reduce((a,b)=>cv(a)<cv(b)?a:b);return tc.reduce((a,b)=>cv(a)<cv(b)?a:b)}return tc.reduce((a,b)=>cv(a)<cv(b)?a:b)}return(nt.length?nt:valid).reduce((a,b)=>cv(a)<cv(b)?a:b)};
 
 /* ═══ RESPONSIVE ═══ */
 function useWin(){const[s,setS]=useState({w:typeof window!=="undefined"?window.innerWidth:1200,h:typeof window!=="undefined"?window.innerHeight:800});useEffect(()=>{const h=()=>setS({w:window.innerWidth,h:window.innerHeight});window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h)},[]);return s}
@@ -67,9 +61,9 @@ function CardC({card,faceDown,onClick,disabled,selected,small,style}){
   const bw=small?{sm:28,md:40,lg:48}[sz]:{sm:50,md:66,lg:82}[sz];
   const bh=small?{sm:40,md:58,lg:68}[sz]:{sm:74,md:96,lg:120}[sz];
 
-  const PU=typeof process!=="undefined"&&process.env?.PUBLIC_URL?process.env.PUBLIC_URL:"";
+  const PU = process.env.PUBLIC_URL || "";
   if(faceDown){
-    if(USE_SVG_CARDS)return <div style={{width:bw,height:bh,borderRadius:small?3:6,flexShrink:0,boxShadow:"2px 2px 0px rgba(0,0,0,0.1)",overflow:"hidden",...(style||{})}}><img src={`${PU}/cards/back.svg`} alt="card" style={{width:"100%",height:"100%",objectFit:"cover"}}/></div>;
+    if(USE_SVG_CARDS)return <div style={{width:bw,height:bh,borderRadius:small?3:6,flexShrink:0,boxShadow:"2px 2px 0px rgba(0,0,0,0.1)",overflow:"hidden",...(style||{})}}><img src="./cards/back.svg" alt="card" style={{width:"100%",height:"100%",objectFit:"cover"}}/></div>;
     return(<div style={{width:bw,height:bh,borderRadius:small?3:6,flexShrink:0,background:P.olive,border:`1px solid ${P.dark}12`,boxShadow:"2px 2px 0px rgba(0,0,0,0.1)",display:"flex",alignItems:"center",justifyContent:"center",...(style||{})}}>{sz==="lg"&&!small&&<div style={{width:bw-10,height:bh-10,borderRadius:3,border:`1px solid ${P.cream}20`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:`${P.cream}30`}}>✦</div>}</div>);
   }
 
@@ -93,7 +87,7 @@ function Slots({count,filled,sz,isHuman,plusShow}){
   const extra=Math.max(0,filled-count),total=count+extra;
   return(<div style={{display:"flex",gap:3,marginTop:3,flexWrap:"wrap",position:"relative"}}>
     {Array.from({length:total}).map((_,i)=>{const isX=i>=count,isF=i<filled;return(
-      <div key={i} style={{width:s,height:h,borderRadius:3,background:isF?(isX?P.gold:P.terra):`${P.dark}35`,border:isF?"none":`1px dashed ${P.dark}50`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:isX?{sm:6,md:7,lg:9}[sz]:{sm:5,md:6,lg:7}[sz],color:isF?P.cream:"transparent",fontWeight:700,fontFamily:FB,boxShadow:isF?"1px 1px 0px rgba(0,0,0,0.06)":"none",transition:`all 0.4s ${EG}`,position:"relative"}}>
+      <div key={i} style={{width:s,height:h,borderRadius:3,background:isF?(isX?P.gold:P.terra):(isHuman?`${P.dark}35`:`${P.cream}20`),border:isF?"none":(isHuman?`1px dashed ${P.dark}50`:`1px dashed ${P.cream}40`),display:"flex",alignItems:"center",justifyContent:"center",fontSize:isX?{sm:6,md:7,lg:9}[sz]:{sm:5,md:6,lg:7}[sz],color:isF?P.cream:"transparent",fontWeight:700,fontFamily:FB,boxShadow:isF?"1px 1px 0px rgba(0,0,0,0.06)":"none",transition:`all 0.4s ${EG}`,position:"relative"}}>
         {isF?(isX?"+":"✦"):""}
         {isX&&i===total-1&&plusShow&&<div style={{position:"absolute",top:-8,right:-8,fontSize:12,fontWeight:700,color:P.gold,fontFamily:FB,animation:`plusPop 1.5s ${EG} forwards`,pointerEvents:"none"}}>+1</div>}
       </div>)})}
@@ -140,8 +134,6 @@ export default function Game345(){
   const[cantPlayPopup,setCantPlayPopup]=useState(false);
   // Fixed positions for trick cards — assigned when card enters, never changes
   const[trickPositions,setTrickPositions]=useState([]);
-  // Round history for AI memory: [{playerIndex, card, ledSuit}, ...] — reset each round
-  const[hist,setHist]=useState([]);
   const tmrs=useRef([]);const playKey=useRef(0);
 
   const sm=SPEEDS[speed].m;const ti=ms=>ms*sm;
@@ -174,7 +166,7 @@ export default function Game345(){
     const np=players.map(p=>({...p,hand:[],tricks:0}));const order=[td,cut,dealerIdx];let idx=0;
     for(const pi of order){np[pi].hand=deck.slice(idx,idx+5);idx+=5}
     const remaining=deck.slice(idx);
-    setPs(np);setRemCards(remaining);setTrump(null);setTrick([]);setTrickNum(0);setTw(null);setSel(null);setMsg("");setCollecting(false);setCollectingTo(null);setVisualTricks([0,0,0]);setPlusAnims([false,false,false]);setRearranging(false);setLastPlayed(null);setTrickPositions([]);setAllDealt(false);setHist([]);
+    setPs(np);setRemCards(remaining);setTrump(null);setTrick([]);setTrickNum(0);setTw(null);setSel(null);setMsg("");setCollecting(false);setCollectingTo(null);setVisualTricks([0,0,0]);setPlusAnims([false,false,false]);setRearranging(false);setLastPlayed(null);setTrickPositions([]);setAllDealt(false);
     setDealAnim("shuffle");setMsg("SHUFFLING...");setPhase("dealing");
     later(()=>{
       setDealAnim("deal1");setMsg("DEALING...");
@@ -208,7 +200,7 @@ export default function Game345(){
         later(()=>{
           setRearranging(false);setDealAnim(null);setTrickNum(1);setCurP(td);
           setMsg(td===0?"TRICK 1 — YOU LEAD":`TRICK 1 — ${p3[td].name} LEADS`);setPhase("playing");
-          if(td!==0)later(()=>runAi(p3,[],td,suit,1,dealerIdx,[]),ti(700));
+          if(td!==0)later(()=>runAi(p3,[],td,suit,1,dealerIdx),ti(700));
         },ti(1000));
       },ti(400));
     },ti(300));
@@ -217,16 +209,14 @@ export default function Game345(){
   const chooseTrump=suit=>{if(phase!=="trumpSelect")return;setPhase("dealing");finishDeal(ps,remCards,suit,dealer)};
 
   /* ═══ PLAY ═══ */
-  const runPlay=(card,pi,cPs,cTr,trp,tn,dealerIdx,h)=>{
+  const runPlay=(card,pi,cPs,cTr,trp,tn,dealerIdx)=>{
     const np=cPs.map((p,i)=>i!==pi?p:{...p,hand:p.hand.filter(c=>c.id!==card.id)});
     const nt=[...cTr,{playerIndex:pi,card}];
-    const ledSuit=cTr.length?cTr[0].card.suit:card.suit;
-    const newHist=[...h,{playerIndex:pi,card,ledSuit}];
     playKey.current++;
     // Assign fixed position for this card in the trick
     const newPos=makeZigPos(cTr.length,sz);
     setTrickPositions(prev=>[...prev,newPos]);
-    setPs(np);setTrick(nt);setSel(null);setLastPlayed({pi,key:playKey.current});setHist(newHist);
+    setPs(np);setTrick(nt);setSel(null);setLastPlayed({pi,key:playKey.current});
 
     if(nt.length===3){
       const w=getWinner(nt,trp);np[w].tricks+=1;setPs([...np]);setTw(w);
@@ -240,17 +230,17 @@ export default function Game345(){
             const nxt=tn+1;if(nxt>12){doEndRound(np,dealerIdx);return}
             setTrickNum(nxt);setCurP(w);
             setMsg(w===0?`TRICK ${nxt} — YOU LEAD`:`TRICK ${nxt} — ${np[w].name} LEADS`);
-            if(!np[w].human)later(()=>runAi(np,[],w,trp,nxt,dealerIdx,newHist),ti(600));
+            if(!np[w].human)later(()=>runAi(np,[],w,trp,nxt,dealerIdx),ti(600));
           },ti(600));
         },ti(500));
       },ti(900));
     }else{
       const nx=(pi+1)%3;setCurP(nx);
       setMsg(nx===0?"YOUR TURN":`${cPs[nx].name}'S TURN`);
-      if(!np[nx].human)later(()=>runAi(np,nt,nx,trp,tn,dealerIdx,newHist),ti(600));
+      if(!np[nx].human)later(()=>runAi(np,nt,nx,trp,tn,dealerIdx),ti(600));
     }
   };
-  const runAi=(cPs,cTr,pi,trp,tn,dI,h)=>{const playedIds=new Set(h.map(x=>x.card.id));const voidMap=computeVoidMap(h);runPlay(aiCard(cPs[pi].hand,cTr,trp,cPs[pi].tricks,targetOf(pi,dI),tn,playedIds,voidMap,pi),pi,cPs,cTr,trp,tn,dI,h)};
+  const runAi=(cPs,cTr,pi,trp,tn,dI)=>{runPlay(aiCard(cPs[pi].hand,cTr,trp,cPs[pi].tricks,targetOf(pi,dI),tn),pi,cPs,cTr,trp,tn,dI)};
 
   const clickCard=card=>{
     if(phase!=="playing"||curP!==0)return;
@@ -258,12 +248,12 @@ export default function Game345(){
     if(!v.find(c=>c.id===card.id)){if(!fadeDisabled){setCantPlayPopup(true);later(()=>setCantPlayPopup(false),1200)}return}
     if(sel&&sel.id===card.id){setSel(null);return}setSel(card);
   };
-  const playSelected=()=>{if(!sel||curP!==0||phase!=="playing")return;runPlay(sel,0,ps,trick,trump,trickNum,dealer,hist)};
+  const playSelected=()=>{if(!sel||curP!==0||phase!=="playing")return;runPlay(sel,0,ps,trick,trump,trickNum,dealer)};
 
   /* ═══ END ROUND — UNCHANGED ═══ */
   const doEndRound=(fp,dI)=>{const res=fp.map((p,i)=>({name:pn(i,fp),tricks:p.tricks,target:targetOf(i,dI),role:rname(i,dI),diff:p.tricks-targetOf(i,dI)}));const pts=fp.map(p=>p.pts);const diffs=res.map(r=>r.diff);const transfers=[];for(let i=0;i<3;i++)for(let j=0;j<3;j++){if(diffs[i]>0&&diffs[j]<0){const a=Math.min(diffs[i],Math.abs(diffs[j]),pts[j]);if(a>0){pts[i]+=a;pts[j]-=a;diffs[i]-=a;diffs[j]+=a;transfers.push(`${pn(j,fp)} pay${j===0?"":"s"} ${a} to ${pn(i,fp)}`)}}}const up=fp.map((p,i)=>({...p,pts:pts[i]}));setPs(up);const bi=up.findIndex(p=>p.pts<=0);setResults({res,transfers,bankrupt:bi>=0?pn(bi,up):null});setPhase("roundEnd")};
   const continueGame=()=>{clr();const nd=(dealer+1)%3;setDealer(nd);setRound(r=>r+1);setResults(null);later(()=>startRound(ps,nd),250)};
-  const newGame=()=>{clr();const[n1,n2]=pick2();const fp=[{name:"You",hand:[],tricks:0,pts:19,human:true},{name:n1,hand:[],tricks:0,pts:19,human:false},{name:n2,hand:[],tricks:0,pts:19,human:false}];const fd=Math.floor(Math.random()*3);setPs(fp);setDealer(fd);setRound(1);setResults(null);setTrump(null);setTrick([]);setTrickNum(0);setTw(null);setSel(null);setShowMenu(false);setShowHelp(false);setMsg("");setDealAnim(null);setAllDealt(false);setCollecting(false);setCollectingTo(null);setVisualTricks([0,0,0]);setPlusAnims([false,false,false]);setRearranging(false);setLastPlayed(null);setTrickPositions([]);setHist([]);later(()=>startRound(fp,fd),300)};
+  const newGame=()=>{clr();const[n1,n2]=pick2();const fp=[{name:"You",hand:[],tricks:0,pts:19,human:true},{name:n1,hand:[],tricks:0,pts:19,human:false},{name:n2,hand:[],tricks:0,pts:19,human:false}];const fd=Math.floor(Math.random()*3);setPs(fp);setDealer(fd);setRound(1);setResults(null);setTrump(null);setTrick([]);setTrickNum(0);setTw(null);setSel(null);setShowMenu(false);setShowHelp(false);setMsg("");setDealAnim(null);setAllDealt(false);setCollecting(false);setCollectingTo(null);setVisualTricks([0,0,0]);setPlusAnims([false,false,false]);setRearranging(false);setLastPlayed(null);setTrickPositions([]);later(()=>startRound(fp,fd),300)};
 
   const btnS=bg=>({padding:{sm:"6px 12px",md:"8px 18px",lg:"10px 24px"}[sz],fontSize:{sm:9,md:11,lg:13}[sz],fontFamily:FB,fontWeight:600,background:bg,color:P.cream,border:"none",borderRadius:4,cursor:"pointer",letterSpacing:0.8,textTransform:"uppercase",boxShadow:"2px 2px 0px rgba(0,0,0,0.1)"});
   const tagS=bg=>({display:"inline-block",padding:{sm:"2px 5px",md:"3px 7px",lg:"3px 8px"}[sz],fontSize:{sm:8,md:10,lg:11}[sz],background:bg,color:P.cream,borderRadius:2,fontFamily:FB,fontWeight:700,letterSpacing:0.5,textTransform:"uppercase"});
@@ -274,7 +264,7 @@ export default function Game345(){
   const ov=n>9?{sm:-20,md:-18,lg:-16}[sz]:n>7?{sm:-16,md:-14,lg:-12}[sz]:{sm:-12,md:-10,lg:-8}[sz];
 
   // Hand transition: smooth glide when cards removed
-  const handTransition=`all 0.45s ${EG}`;
+  const handTransition=`all 0.4s ${EG}`;
 
   /* ═══ WELCOME ═══ */
   if(phase==="welcome")return(
@@ -339,14 +329,15 @@ export default function Game345(){
       {cantPlayPopup&&<div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",background:P.dark,color:"#fff",padding:{sm:"10px 18px",md:"12px 22px",lg:"14px 28px"}[sz],borderRadius:6,fontSize:{sm:12,md:14,lg:16}[sz],fontFamily:FB,fontWeight:600,zIndex:200,boxShadow:"4px 4px 0px rgba(0,0,0,0.2)",animation:`popupIn 0.15s ${EG} both`}}>Can't play this card!</div>}
 
       {(showMenu||showHelp)&&(<div style={{position:"fixed",inset:0,background:"rgba(44,44,44,0.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100}} onClick={()=>{setShowMenu(false);setShowHelp(false)}}>
-        <div onClick={e=>e.stopPropagation()} style={{background:P.cream,borderRadius:6,padding:sz==="sm"?"14px":"20px",maxWidth:280,width:"85%",color:P.dark,boxShadow:"4px 4px 0px rgba(0,0,0,0.08)",textAlign:"center"}}>
-          {showHelp?(<><h3 style={{fontFamily:FD,fontSize:{sm:16,md:18,lg:20}[sz],margin:"0 0 10px"}}>How to Play</h3><div style={{fontSize:{sm:10,md:11,lg:12}[sz],lineHeight:1.8,fontWeight:500,textAlign:"left"}}>
-            <p style={{margin:"0 0 5px"}}><span style={tagS(P.terra)}>Roles</span> TD: 5. Cutter: 4. Dealer: 3.</p>
-            <p style={{margin:"0 0 5px"}}><span style={tagS(P.blue)}>Trump</span> Beats everything.</p>
-            <p style={{margin:"0 0 5px"}}><span style={tagS(P.olive)}>Suit</span> Must follow led suit.</p>
-            <p style={{margin:"0 0 5px"}}><span style={tagS(P.dark)}>Win</span> Highest trump or led suit.</p>
-            <p style={{margin:"0 0 8px"}}><span style={tagS(P.terra)}>Points</span> Miss? Pay difference.</p>
-          </div><button onClick={()=>setShowHelp(false)} style={btnS(P.terra)}>Got It</button></>):(<><h3 style={{fontFamily:FD,fontSize:{sm:16,md:18,lg:20}[sz],margin:"0 0 12px"}}>Menu</h3><div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"center"}}>
+        <div onClick={e=>e.stopPropagation()} style={{background:P.cream,borderRadius:6,padding:showHelp?(sz==="sm"?"24px 18px":"40px 45px"):(sz==="sm"?"20px 16px":"36px 40px"),maxWidth:showHelp?550:280,width:"92%",color:P.dark,boxShadow:"4px 4px 0px rgba(0,0,0,0.08)",textAlign:"center",transition:"max-width 0.3s ease"}}>
+          {showHelp?(<><h3 style={{fontFamily:FD,fontSize:{sm:24,md:32,lg:40}[sz],margin:"0 0 25px",color:P.dark}}>How To Play</h3><div style={{fontSize:{sm:10,md:12,lg:14}[sz],lineHeight:1.5,fontWeight:500,textAlign:"left",display:"flex",flexDirection:"column",gap:20}}>
+            <div style={{display:"flex",gap:15,alignItems:"center"}}><span style={{...tagS(P.cream),color:P.dark,boxShadow:"2px 2px 0px rgba(0,0,0,0.1)",px:10}}>SETUP</span><div style={{color:P.dark}}>Each player starts with a target number of tricks.<br/><strong>Trump Caller · 5</strong> &nbsp;|&nbsp; <strong>Cutter · 4</strong> &nbsp;|&nbsp; <strong>Dealer · 3</strong></div></div>
+            <div style={{display:"flex",gap:15,alignItems:"center"}}><span style={{...tagS(P.terra),boxShadow:"2px 2px 0px rgba(0,0,0,0.15)"}}>TRICKS</span><div style={{color:P.dark}}>Each player plays one card. The highest card wins all three—that is one "trick."</div></div>
+            <div style={{display:"flex",gap:15,alignItems:"center"}}><span style={{...tagS(P.blue),boxShadow:"2px 2px 0px rgba(0,0,0,0.15)"}}>TRUMP</span><div style={{color:P.dark}}>One suit is chosen as Trump. These cards beat any other suit, regardless of rank.</div></div>
+            <div style={{display:"flex",gap:15,alignItems:"center"}}><span style={{...tagS(P.dark),boxShadow:"2px 2px 0px rgba(0,0,0,0.2)"}}>RULES</span><div style={{color:P.dark}}>You must follow the suit that was led. If you can't, you may play a Trump to win or discard another suit.</div></div>
+            <div style={{display:"flex",gap:15,alignItems:"center"}}><span style={{...tagS(P.olive),boxShadow:"2px 2px 0px rgba(0,0,0,0.15)"}}>WINNING</span><div style={{color:P.dark}}>High card of the led suit wins, unless a Trump is played. The winner leads the next trick.</div></div>
+            <div style={{display:"flex",gap:15,alignItems:"center"}}><span style={{...tagS(P.gold),boxShadow:"2px 2px 0px rgba(0,0,0,0.15)"}}>SCORING</span><div style={{color:P.dark}}><div>At the end of a round, if you missed your target, you must pay points to those who exceeded theirs.*</div><div style={{fontSize:11,color:`${P.dark}50`,marginTop:6,fontStyle:"italic"}}>*Each player starts out with 19 points, to stay true to the original offline game.</div></div></div>
+          </div><div style={{display:"flex",justifyContent:"center",marginTop:35}}><button onClick={()=>setShowHelp(false)} style={{...btnS(P.terra),padding:"15px 50px",fontSize:18,borderRadius:4,boxShadow:"3px 3px 0px rgba(0,0,0,0.1)"}}>GOT IT</button></div></>):(<><h3 style={{fontFamily:FD,fontSize:{sm:16,md:18,lg:20}[sz],margin:"0 0 12px"}}>Menu</h3><div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"center"}}>
             <button onClick={()=>setShowMenu(false)} style={{...btnS(P.olive),width:"100%",maxWidth:200}}>▶ Resume</button>
             <button onClick={()=>{setShowMenu(false);setShowHelp(true)}} style={{...btnS(P.blue),width:"100%",maxWidth:200}}>? How to Play</button>
             <button onClick={()=>{setShowMenu(false);newGame()}} style={{...btnS(P.dark),width:"100%",maxWidth:200}}>↻ New Game</button>
@@ -388,7 +379,18 @@ export default function Game345(){
       {/* DECK */}
       {dealAnim==="shuffle"&&(
         <div style={{position:"absolute",top:"38%",left:"50%",transform:"translate(-50%,-50%)",zIndex:20}}>
-          {[0,1,2,3].map(i=>(<div key={i} style={{position:i===0?"relative":"absolute",top:i*-2,left:i*1,width:{sm:42,md:56,lg:70}[sz],height:{sm:60,md:80,lg:102}[sz],borderRadius:5,background:P.olive,border:`1px solid ${P.dark}15`,boxShadow:"2px 2px 0px rgba(0,0,0,0.12)",display:"flex",alignItems:"center",justifyContent:"center",animation:i%2===0?`shuffleL 0.8s ${EG} ${i*0.1}s`:`shuffleR 0.8s ${EG} ${i*0.1}s`}}>{i===3&&<span style={{color:`${P.cream}25`,fontSize:16}}>✦</span>}</div>))}
+          {[0,1,2,3].map(i=>(
+            <CardC 
+              key={i} 
+              faceDown 
+              style={{
+                position: i===0 ? "relative" : "absolute",
+                top: i * -2,
+                left: i * 1,
+                animation: i%2===0 ? `shuffleL 0.8s ${EG} ${i*0.1}s` : `shuffleR 0.8s ${EG} ${i*0.1}s`
+              }} 
+            />
+          ))}
         </div>
       )}
 
@@ -437,7 +439,7 @@ export default function Game345(){
       </div>}
 
       {/* PLAYER HAND — smooth glide on removal */}
-      <div className="handScroll" style={{position:"absolute",bottom:{sm:4,md:8,lg:12}[sz],left:"50%",transform:"translateX(-50%)",display:"flex",alignItems:"flex-end",maxWidth:"96vw",overflowX:"auto",overflowY:"visible",WebkitOverflowScrolling:"touch",scrollbarWidth:"none",paddingTop:24,paddingBottom:4}}>
+      <div style={{position:"absolute",bottom:{sm:4,md:8,lg:12}[sz],left:"50%",transform:"translateX(-50%)",display:"flex",alignItems:"flex-end",maxWidth:"96vw"}}>
         {ps[0].hand.map((card,i)=>{
           const angle=(i-(n-1)/2)*(n>9?{sm:0.8,md:1,lg:1.2}[sz]:{sm:1.2,md:1.5,lg:1.8}[sz]);
           const yOff=Math.abs(i-(n-1)/2)*(n>9?0.3:0.7);
@@ -459,18 +461,18 @@ export default function Game345(){
       {/* TRUMP SELECT */}
       {phase==="trumpSelect"&&(
         <div style={{position:"absolute",inset:0,background:"rgba(44,44,44,0.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:50}}>
-          <div style={{background:P.cream,borderRadius:6,padding:{sm:"12px",md:"16px",lg:"20px"}[sz],textAlign:"center",color:P.dark,boxShadow:"4px 4px 0px rgba(0,0,0,0.08)",maxWidth:{sm:300,md:360,lg:400}[sz],width:"94%"}}>
+          <div style={{background:P.cream,borderRadius:6,padding:{sm:"12px",md:"16px",lg:"20px"}[sz],textAlign:"center",color:P.dark,boxShadow:"4px 4px 0px rgba(0,0,0,0.08)",maxWidth:{sm:360,md:500,lg:650}[sz],width:"94%"}}>
             <h3 style={{fontFamily:FD,fontSize:{sm:16,md:19,lg:22}[sz],margin:"0 0 4px"}}>Choose Trump</h3>
             <p style={{fontSize:{sm:9,md:10,lg:11}[sz],color:`${P.dark}66`,margin:"0 0 8px",fontWeight:500}}>Your first 5 cards — pick a trump suit</p>
             <div style={{display:"flex",justifyContent:"center",gap:{sm:2,md:3,lg:4}[sz],marginBottom:12}}>
-              {ps[0].hand.map(card=><CardC key={card.id} card={card} small/>)}
+              {ps[0].hand.map(card=><CardC key={card.id} card={card} />)}
             </div>
             <div style={{display:"flex",gap:{sm:5,md:6,lg:8}[sz],justifyContent:"center"}}>
               {SUITS.map(suit=>{const cnt=ps[0].hand.filter(c=>c.suit===suit).length;return(
-                <button key={suit} onClick={()=>chooseTrump(suit)} style={{width:{sm:54,md:64,lg:76}[sz],height:{sm:66,md:78,lg:92}[sz],borderRadius:5,background:P.cream,border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:1,boxShadow:"2px 2px 0px rgba(0,0,0,0.06)",transition:`all 0.2s ${EG}`}}
+                <button key={suit} onClick={()=>chooseTrump(suit)} style={{width:{sm:70,md:90,lg:110}[sz],height:{sm:85,md:110,lg:130}[sz],borderRadius:5,background:P.cream,border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:1,boxShadow:"2px 2px 0px rgba(0,0,0,0.06)",transition:`all 0.2s ${EG}`}}
                   onMouseEnter={e=>{e.currentTarget.style.background=`${P.olive}15`;e.currentTarget.style.transform="translateY(-3px)"}}
                   onMouseLeave={e=>{e.currentTarget.style.background=P.cream;e.currentTarget.style.transform="none"}}>
-                  <span style={{fontSize:{sm:20,md:26,lg:32}[sz],color:SCOL[suit]}}>{SYM[suit]}</span>
+                  <span style={{fontSize:{sm:30,md:42,lg:54}[sz],color:SCOL[suit]}}>{SYM[suit]}</span>
                   <span style={{fontSize:{sm:8,md:10,lg:12}[sz],color:P.dark,textTransform:"capitalize",fontFamily:FD}}>{suit}</span>
                   <span style={{fontSize:{sm:7,md:8,lg:9}[sz],color:`${P.dark}55`,fontFamily:FB,fontWeight:600}}>{cnt} card{cnt!==1?"s":""}</span>
                 </button>)})}
